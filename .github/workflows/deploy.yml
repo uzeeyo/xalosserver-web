@@ -78,4 +78,4 @@ jobs:
 
             # Remove unused images to free up space
             docker image prune -f
-          EOSSH
+          EOF
