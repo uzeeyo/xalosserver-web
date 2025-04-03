@@ -52,17 +52,13 @@ jobs:
     steps:
       - name: Set up SSH key
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.AWS_PEM }}" > ~/.ssh/deploy_key.pem
-          chmod 600 ~/.ssh/deploy_key.pem
+          echo "${{ secrets.AWS_PEM }}" > deploy_key.pem
+          chmod 400 deploy_key.pem
 
       - name: Deploy to server
         run: |
-          # Add the server to known hosts to avoid prompt
-          ssh-keyscan -H ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts
-
           # SSH to the server and run deploy commands
-          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.AWS_USERNAME }}@${{ secrets.AWS_HOST }} << 'EOSSH'
+          ssh -i deploy_key.pem -o StrictHostKeyChecking=no ${{ secrets.AWS_USER }}@${{ secrets.AWS_IP }} << EOF
             # Login to GitHub Container Registry
             echo "${{ secrets.GIT_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             
