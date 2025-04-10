@@ -24,7 +24,12 @@ function MatchBrowserPage() {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:9000/match-browser");
+    const apiUrl = process.env.REACT_APP_API_URL;
+    if (!apiUrl) {
+      throw new Error("REACT_APP_API_URL is not defined");
+    }
+    const wsUrl = apiUrl + "/match-browser";
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onmessage = (event) => {

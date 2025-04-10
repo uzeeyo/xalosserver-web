@@ -160,7 +160,12 @@ function MatchDetailsPage() {
   ]);
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:9000/match/${id}`);
+    const apiUrl = process.env.REACT_APP_API_URL;
+    if (!apiUrl) {
+      throw new Error("REACT_APP_API_URL is not defined");
+    }
+    const wsUrl = apiUrl + "/match/" + id;
+    const ws = new WebSocket(wsUrl);
     ws.onopen = () => {
       setIsConnected(true);
     };
@@ -192,6 +197,14 @@ function MatchDetailsPage() {
               playerId: player.playerId,
               zones: player.board.zones,
             }));
+            updatedBoardStates[0].zones.sort((a, b) => a.id - b.id);
+            if (updatedBoardStates[0].zones[0].id === 4) {
+              updatedBoardStates[0].zones.reverse();
+            }
+            updatedBoardStates[1].zones.sort((a, b) => a.id - b.id);
+            if (updatedBoardStates[1].zones[0].id === 4) {
+              updatedBoardStates[1].zones.reverse();
+            }
             setBoardStates(updatedBoardStates);
 
             const updatedHandStates = matchState.players.map((player) => ({
@@ -265,7 +278,7 @@ function MatchDetailsPage() {
                 return handState;
               });
             });
-            
+
             setBoardStates((currentBoardStates) => {
               return currentBoardStates.map((boardState) => {
                 if (
@@ -273,7 +286,9 @@ function MatchDetailsPage() {
                   playCardMessage.zoneId !== undefined
                 ) {
                   const updatedZones = [...boardState.zones];
-                  const zone = updatedZones.find((zone) => zone.id === playCardMessage.zoneId)
+                  const zone = updatedZones.find(
+                    (zone) => zone.id === playCardMessage.zoneId
+                  );
                   if (zone) {
                     zone.card = playCardMessage.card;
                   }
@@ -294,7 +309,10 @@ function MatchDetailsPage() {
               return currentBoardStates.map((boardState) => {
                 if (boardState.playerId === removeCardMessage.ownerId) {
                   const updatedZones = boardState.zones.map((zone) => {
-                    if (zone.card != undefined && zone.card.id === removeCardMessage.id) {
+                    if (
+                      zone.card !== undefined &&
+                      zone.card.id === removeCardMessage.id
+                    ) {
                       return { ...zone, card: undefined };
                     }
                     return zone;
@@ -353,14 +371,35 @@ function MatchDetailsPage() {
 
           {/* Field */}
           <div className="flex flex-row justify-center mt-8 gap-4">
-            {boardStates[0].zones.map((zone) => (
-              <Zone key={zone.id}>{zone.card && <Card {...zone.card} />}</Zone>
-            ))}
+            {boardStates[0].zones[0].id === 0 && (
+              <div className="h-[12rem] p-2 min-w-32 lg:min-w-48 w-56 bg-transparent"></div>
+            )}
+            {boardStates[0].zones.map((zone, i) => {
+              return (
+                <Zone key={i} id={zone.id}>
+                  {zone.card && <Card {...zone.card!} />}
+                </Zone>
+              );
+            })}
+            {boardStates[0].zones[0].id === 7 && (
+              <div className="h-[12rem] p-2 min-w-32 lg:min-w-48 w-56 bg-transparent"></div>
+            )}
           </div>
+
           <div className="flex flex-row justify-center mt-4 gap-4 mb-8">
-            {boardStates[1].zones.map((zone) => (
-              <Zone key={zone.id}>{zone.card && <Card {...zone.card} />}</Zone>
-            ))}
+            {boardStates[1].zones[0].id === 0 && (
+              <div className="h-[12rem] p-2 min-w-32 lg:min-w-48 w-56 bg-transparent"></div>
+            )}
+            {boardStates[1].zones.map((zone, i) => {
+              return (
+                <Zone key={i} id={zone.id}>
+                  {zone.card && <Card {...zone.card!} />}
+                </Zone>
+              );
+            })}
+            {boardStates[1].zones[0].id === 7 && (
+              <div className="h-[12rem] p-2 min-w-32 lg:min-w-48 w-56 bg-transparent"></div>
+            )}
           </div>
 
           <Hand cards={handStates[1].cards} />
